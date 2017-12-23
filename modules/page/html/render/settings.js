@@ -1,6 +1,7 @@
 var { h, when } = require('mutant')
 var nest = require('depnest')
 var packageInfo = require('../../../../package.json')
+var { ipcRenderer } = require('electron')
 
 var themeNames = Object.keys(require('../../../../styles'))
 
@@ -51,6 +52,26 @@ exports.create = function (api) {
             }, [
               themeNames.map(name => h('option', {value: name}, [name]))
             ])
+          ]),
+
+          h('section', [
+            h('h2', i18n('Number of Hops')),
+            h('div', {style: {display: 'flex', 'justify-content': 'space-between', width: '100%'}}, [
+              h('label', 'friends'),
+              h('label', 'friends of friends'),
+              h('label', 'friends of friends of friends')
+            ]),
+            h('input', {
+              type: 'range',
+              list: 'hops',
+              style: { width: '100%', 'font-size': '120%' },
+              min: 1,
+              max: 6,
+              value: 3,
+              'ev-change': (ev) => {
+                ipcRenderer.send('change-hops', ev.target.value)
+              }
+            })
           ]),
 
           h('section', [

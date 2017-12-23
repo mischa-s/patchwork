@@ -64,6 +64,9 @@ electron.app.on('ready', () => {
       windows.background.webContents.openDevTools({detach: true})
     }
   })
+  electron.ipcMain.on('change-hops', function (ev, nextHops) {
+    updateContext('ssb', nextHops)
+  })
 })
 
 function openMainWindow () {
@@ -106,14 +109,14 @@ function setupContext (appName, opts, cb) {
     blobsPort: 7777,
     friends: {
       dunbar: 150,
-      hops: 2 // down from 3
+      hops: 4 // down from 3
     }
   }, opts))
 
   console.log(ssbConfig)
 
   ssbConfig.keys = ssbKeys.loadOrCreateSync(Path.join(ssbConfig.path, 'secret'))
-
+  
   // fix offline on windows by specifying 127.0.0.1 instead of localhost (default)
   var id = ssbConfig.keys.id
   ssbConfig.remote = `net:127.0.0.1:${ssbConfig.port}~shs:${id.slice(1).replace('.ed25519', '')}`
@@ -145,4 +148,13 @@ function setupContext (appName, opts, cb) {
     //   windows.background.hide()
     // })
   }
+}
+
+function updateContext (appName, nextHops) {
+  ssbConfig = require('ssb-config/inject')(appName, extend({
+    friends: {
+      hops: nextHops || 2 // down from 3
+    }
+  }))
+  console.log(ssbConfig, 'newSSBconfig')
 }
